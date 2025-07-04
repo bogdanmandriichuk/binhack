@@ -3,23 +3,23 @@ import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useProgress } from '../../hooks/useProgress';
 import { motion, AnimatePresence } from 'framer-motion';
-import Switcher from '../../styles/Switcher';
+import Switcher from '../../styles/Switcher'; // Переконайтеся, що шлях правильний
 import translations from '../../translations';
 import { useAppContext } from '../../context/AppContext';
-import SignalStatsModal from './SignalStatsModal';
+import SignalStatsModal from './SignalStatsModal'; // Переконайтеся, що шлях правильний
 
 // Import Font Awesome components and icons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faThumbsUp, faThumbsDown, faArrowUp, faArrowDown, faCheckCircle, faCog } from '@fortawesome/free-solid-svg-icons';
 
 // Import the background image
-import backgroundImage from '../../assets/chicken-road-bg.jpg';
+import backgroundImage from '../../assets/chicken-road-bg.jpg'; // Переконайтеся, що шлях правильний
 
 
-// --- Styled Components (Updated & New) ---
+// --- Styled Components (Updated for Responsiveness) ---
 
 const GameCard = styled.div`
-    padding: 25px;
+    padding: 2.5rem; /* Use rem for responsive padding */
     text-align: center;
     background-color: #3C3000; /* Dark yellow/gold background */
     border-radius: 15px;
@@ -28,6 +28,9 @@ const GameCard = styled.div`
     color: white;
     position: relative;
     overflow: hidden;
+    max-width: 700px; /* Max width for larger screens */
+    width: 95%; /* Responsive width */
+    margin: 2rem auto; /* Center the card and add vertical margin */
 
     background-image: url(${props => props.$backgroundImage});
     background-size: cover;
@@ -50,16 +53,31 @@ const GameCard = styled.div`
         position: relative;
         z-index: 2;
     }
+
+    @media (max-width: 768px) {
+        padding: 1.5rem; /* Smaller padding on tablets */
+        margin: 1rem auto;
+    }
+
+    @media (max-width: 480px) {
+        padding: 1rem; /* Even smaller padding on mobile */
+        margin: 0.5rem auto;
+        width: 98%; /* Almost full width on very small screens */
+    }
 `;
 
 const ProgressContainer = styled.div`
-    margin-bottom: 25px;
+    margin-bottom: 1.5rem; /* Use rem */
 `;
 
 const ProgressLabel = styled.p`
-    font-size: 0.9rem;
+    font-size: 0.9rem; /* Base font size */
     color: white;
-    margin-bottom: 10px;
+    margin-bottom: 0.5rem; /* Use rem */
+
+    @media (max-width: 480px) {
+        font-size: 0.8rem; /* Smaller on mobile */
+    }
 `;
 
 const ProgressBar = styled.div`
@@ -77,18 +95,19 @@ const ProgressBarFill = styled(motion.div)`
 
 const Form = styled.div`
     display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
+    flex-wrap: wrap; /* Allow items to wrap to next line */
+    gap: 1rem; /* Use rem for consistent spacing */
     align-items: center;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 1.5rem; /* Use rem */
 `;
 
 const Input = styled.input`
-    flex: 1;
-    min-width: 120px;
-    padding: 12px;
-    font-size: 1rem;
+    flex: 1; /* Allow input to grow and shrink */
+    min-width: 100px; /* Adjusted min-width for smaller screens */
+    max-width: 180px; /* Max width to prevent overly wide inputs */
+    padding: 0.75rem; /* Use rem for padding */
+    font-size: 1rem; /* Base font size */
     border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 8px;
     background-color: rgba(0, 0, 0, 0.5);
@@ -97,60 +116,79 @@ const Input = styled.input`
 
     &:focus {
         outline: none;
-        border-color: #FFD700; /* Gold focus */
+        border-color: #FFD700;
         box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+    }
+
+    @media (max-width: 480px) {
+        min-width: 100%; /* Full width on mobile */
+        max-width: 100%;
+        font-size: 0.9rem;
+        padding: 0.6rem;
     }
 `;
 
 const Select = styled.select`
-    padding: 12px;
-    font-size: 1rem;
+    padding: 0.75rem; /* Use rem for padding */
+    font-size: 1rem; /* Base font size */
     border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 8px;
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
     cursor: pointer;
-    min-width: 100px;
+    min-width: 90px; /* Adjusted min-width */
     transition: border-color 0.3s, box-shadow 0.3s;
 
     &:focus {
         outline: none;
-        border-color: #FFD700; /* Gold focus */
+        border-color: #FFD700;
         box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+    }
+
+    @media (max-width: 480px) {
+        min-width: 100%; /* Full width on mobile */
+        font-size: 0.9rem;
+        padding: 0.6rem;
     }
 `;
 
 const FormLabel = styled.label`
     font-size: 0.9rem;
     color: white;
-    margin-right: 5px;
-    white-space: nowrap; /* Prevent line breaks for labels */
+    margin-right: 0.3rem; /* Use rem */
+    white-space: nowrap;
 `;
 
 const FormRow = styled.div`
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 1rem; /* Use rem */
     flex-wrap: wrap;
     justify-content: center;
-    width: 100%;
+    width: 100%; /* Ensure rows take full width */
+
+    @media (max-width: 480px) {
+        flex-direction: column; /* Stack items vertically on mobile */
+        gap: 0.5rem; /* Smaller gap */
+        align-items: flex-start; /* Align labels to start */
+    }
 `;
 
 const Button = styled(motion.button)`
-    padding: 12px 25px;
-    font-size: 1rem;
+    padding: 0.85rem 1.8rem; /* Збільшений padding для більших кнопок */
+    font-size: 1.1rem; /* Збільшений шрифт для кнопок */
     font-weight: bold;
     border: none;
     border-radius: 8px;
-    background-color: #FFD700; /* Gold */
-    color: #3C3000; /* Dark yellow/gold text */
+    background-color: #FFD700;
+    color: #3C3000;
     cursor: pointer;
     transition: background-color 0.2s;
-    min-width: 150px;
+    min-width: 140px; /* Ensure sufficient touch target */
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 
     &:hover {
-        background-color: #E6B800; /* Darker gold on hover */
+        background-color: #E6B800;
     }
 
     &:disabled {
@@ -158,45 +196,68 @@ const Button = styled(motion.button)`
         color: #e9ecef;
         cursor: not-allowed;
     }
+
+    @media (max-width: 480px) {
+        width: 100%; /* Full width on mobile */
+        font-size: 1rem; /* Трохи менший шрифт на мобільних */
+        padding: 0.75rem 1.2rem; /* Трохи менший padding на мобільних */
+    }
 `;
 
 const PredictionDisplay = styled.h4`
-    font-size: 2.5rem;
+    font-size: 2.5rem; /* Base font size */
     color: white;
-    margin-bottom: 20px;
+    margin-bottom: 1.5rem; /* Use rem */
     text-shadow: 0 0 5px rgba(0,0,0,0.5);
-    height: 80px; /* Fixed height to prevent layout shift */
+    height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px; /* Increased space between icon and text */
+    gap: 1rem; /* Use rem */
+
+    @media (max-width: 480px) {
+        font-size: 1.5rem; /* Зменшено для мобільних */
+        height: 60px;
+    }
 `;
 
 const PredictionIconWrapper = styled(motion.div)`
-    font-size: 3rem; /* Larger icon */
-    color: ${props => props.$isUp ? '#32CD32' : '#FF4500'}; /* LimeGreen for UP, OrangeRed for DOWN */
+    font-size: 3rem; /* Base icon size */
+    color: ${props => props.$isUp ? '#32CD32' : '#FF4500'};
     display: flex;
     align-items: center;
     justify-content: center;
+
+    @media (max-width: 480px) {
+        font-size: 2.5rem; /* Smaller on mobile */
+    }
 `;
 
 const PredictionText = styled(motion.span)`
     font-weight: bold;
-    font-size: 2.2rem; /* Make the text slightly smaller than icon but still prominent */
-    color: ${props => props.$isUp ? '#32CD32' : '#FF4500'}; /* Match icon color */
+    font-size: 2.2rem; /* Base text size */
+    color: ${props => props.$isUp ? '#32CD32' : '#FF4500'};
+
+    @media (max-width: 480px) {
+        font-size: 1.2rem; /* Зменшено для мобільних */
+    }
 `;
 
 const AssetConfirmationDisplay = styled(motion.div)`
-    font-size: 1.5rem;
+    font-size: 1.5rem; /* Base font size */
     font-weight: bold;
-    color: #FFD700; /* Gold color for emphasis */
-    margin-bottom: 15px;
+    color: #FFD700;
+    margin-bottom: 1rem; /* Use rem */
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 0.5rem; /* Use rem */
     text-shadow: 0 0 5px rgba(0,0,0,0.5);
-    min-height: 30px; /* Ensure it occupies space even when showing a temporary message */
+    min-height: 30px;
+
+    @media (max-width: 480px) {
+        font-size: 1.2rem; /* Smaller on mobile */
+    }
 `;
 
 const spinning = keyframes`
@@ -213,62 +274,97 @@ const FeedbackContainer = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 10px;
-    margin-bottom: 30px;
+    margin-top: 1rem; /* Use rem */
+    margin-bottom: 2rem; /* Use rem */
     text-align: center;
 `;
 
 const FeedbackText = styled.p`
     font-size: 0.9rem;
     color: white;
-    margin-bottom: 15px;
+    margin-bottom: 1rem; /* Use rem */
     max-width: 300px;
     text-shadow: 0 0 3px rgba(0,0,0,0.5);
+
+    @media (max-width: 480px) {
+        font-size: 0.8rem;
+        max-width: 90%;
+    }
 `;
 
 const FeedbackButtons = styled.div`
     display: flex;
-    gap: 30px;
+    gap: 2rem; /* Use rem */
+
+    @media (max-width: 480px) {
+        gap: 1.5rem;
+    }
 `;
 
 const FeedbackButton = styled(motion.button)`
     background: none;
     border: none;
-    font-size: 2.5rem;
+    font-size: 2.5rem; /* Base icon size */
     cursor: pointer;
     color: white;
     transition: transform 0.2s;
+    /* Ensure sufficient touch target area */
+    padding: 0.5rem; 
+    min-width: 48px; /* Minimum touch target size */
+    min-height: 48px;
+
+    @media (max-width: 480px) {
+        font-size: 2rem; /* Smaller on mobile */
+    }
 `;
 
 const ViewStatsButton = styled(motion.button)`
-    margin-top: 10px;
+    margin-top: 1rem; /* Use rem */
     background-color: transparent;
     color: white;
     border: 2px solid white;
-    padding: 8px 15px;
+    padding: 0.6rem 1rem; /* Responsive padding */
     border-radius: 8px;
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.2s, color 0.2s;
+    min-width: 120px; /* Sufficient touch target */
+
     &:hover {
         background-color: white;
         color: #3C3000;
+    }
+
+    @media (max-width: 480px) {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.8rem;
     }
 `;
 
 const SwitcherGroup = styled.div`
     display: flex;
     justify-content: center;
-    gap: 30px;
-    margin-top: 20px;
+    gap: 2rem; /* Use rem */
+    margin-top: 1.5rem; /* Use rem */
+    flex-wrap: wrap; /* Allow switchers to wrap */
+
+    @media (max-width: 480px) {
+        flex-direction: column; /* Stack vertically on mobile */
+        gap: 1rem;
+        align-items: center;
+    }
 `;
 
 const NotificationMessage = styled(motion.p)`
-    font-size: 1.2rem;
+    font-size: 1.2rem; /* Base font size */
     font-weight: bold;
     color: white;
-    margin-bottom: 20px;
+    margin-bottom: 1.5rem; /* Use rem */
     text-shadow: 0 0 5px rgba(0,0,0,0.5);
+
+    @media (max-width: 480px) {
+        font-size: 1rem;
+    }
 `;
 
 // --- Hacker Console Styles ---
@@ -281,17 +377,17 @@ const ConsoleContainer = styled(motion.div)`
     background-color: rgba(0, 0, 0, 0.7);
     border: 1px solid #FFD700; /* Gold border */
     border-radius: 8px;
-    padding: 15px;
-    margin-top: 25px;
-    margin-bottom: 25px;
+    padding: 1rem; /* Use rem */
+    margin-top: 1.5rem; /* Use rem */
+    margin-bottom: 1.5rem; /* Use rem */
     font-family: 'Share Tech Mono', monospace; /* Hacking font */
     color: #FFD700; /* Gold text */
-    font-size: 0.9rem;
+    font-size: 0.9rem; /* Base font size */
     height: 150px; /* Fixed height for the console */
     overflow-y: auto; /* Allow scrolling */
     text-align: left;
-    white-space: pre-wrap; /* Preserve whitespace and break lines */
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); /* Gold glow */
+    white-space: pre-wrap;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
     position: relative;
     line-height: 1.4;
 
@@ -300,8 +396,14 @@ const ConsoleContainer = styled(motion.div)`
         animation: ${blink} 1s infinite;
         font-weight: bold;
         position: absolute;
-        bottom: 10px;
-        right: 15px;
+        bottom: 0.5rem; /* Responsive position */
+        right: 0.75rem; /* Responsive position */
+    }
+
+    @media (max-width: 480px) {
+        font-size: 0.8rem; /* Smaller on mobile */
+        padding: 0.75rem;
+        height: 120px; /* Slightly smaller height */
     }
 `;
 
@@ -357,7 +459,6 @@ const BinaryOptionsHack = () => {
     const [direction, setDirection] = useState('...');
     const [isAntiDetectOn, setIsAntiDetectOn] = useState(false);
     const [isLegitModeOn, setIsLegitModeOn] = useState(false);
-    // Використовуємо calibrationClicks з AppContext для збереження стану
     const { language, calibrationClicks, setCalibrationClicks } = useAppContext(); 
     const [isSignalLoading, setIsSignalLoading] = useState(false);
     const [isSignalReady, setIsSignalReady] = useState(false);
@@ -369,7 +470,6 @@ const BinaryOptionsHack = () => {
 
     const t = translations[language];
 
-    // Використовуємо hook useProgress з оновленим calibrationClicks
     const { progress, isCalibrated } = useProgress(calibrationClicks, MAX_CALIBRATION_CLICKS);
 
     // Effect for Console output simulation
@@ -383,7 +483,8 @@ const BinaryOptionsHack = () => {
                     const message = CONSOLE_MESSAGES[messageIndex];
                     let type = 'info';
                     if (message.includes('ERROR')) type = 'error';
-                    if (message.includes('SUCCESS') || message.includes('READY')) type = 'success';
+                    if (message.includes('SUCCESS') || message.includes('READY') || message.includes('GRANTED') || message.includes('COMPLETED')) type = 'success';
+                    if (message.includes('WARNING')) type = 'error'; // Treat warnings as errors for console coloring
 
                     setConsoleOutput(prev => [...prev, { text: message, type }]);
                     messageIndex++;
@@ -417,7 +518,7 @@ const BinaryOptionsHack = () => {
     // Effect to scroll console to bottom on new messages
     useEffect(() => {
         if (consoleRef.current) {
-            consoleRef.current.scrollTop = consoleRef.current.scrollHeight; // Змінено console.current на consoleRef.current
+            consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
         }
     }, [consoleOutput]);
 
@@ -425,11 +526,13 @@ const BinaryOptionsHack = () => {
     const handlePlaceBet = () => {
         console.log("User clicked: Make Trade Now button");
         if (isCalibrated && isSignalReady) {
-            alert(`${t.bet_placed_alert_binary} ${betAmount || '...'} ${currency} ${t.on_asset} ${selectedAsset} ${t.for_direction} ${direction} ${t.for_time} ${betTime}`);
+            // Using a custom alert/message box is recommended instead of browser's alert()
+            // For now, keeping alert for simplicity based on previous context
+            alert(`${t.bet_placed_alert} ${betAmount || '...'} ${currency} ${t.on_asset} ${selectedAsset} ${t.for_direction} ${direction} ${t.for_time} ${betTime}`);
             setIsSignalReady(false);
             setDirection('...');
-            setSelectedAsset(null); // Reset selected asset after placing bet
             setConsoleOutput(prev => [...prev, { text: `TRADE: Executing ${direction} trade on ${selectedAsset}...`, type: "info" }]);
+            setSelectedAsset(null); // Reset selected asset after placing bet
         }
     };
 
@@ -592,9 +695,10 @@ const BinaryOptionsHack = () => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 10 }}
                             transition={{ duration: 0.3 }}
-                            style={{ color: 'white', fontWeight: 'bold' }}
+                            // Зменшений шрифт для "Очікую команди..."
+                            style={{ color: 'white', fontWeight: 'bold', fontSize: '0.9rem' }} /* Зменшено до 0.9rem */
                         >
-                            {t.loading_prediction}
+                            {t.awaiting_command} {/* Змінено ключ перекладу */}
                         </motion.span>
                     )}
                 </AnimatePresence>
@@ -778,4 +882,4 @@ const BinaryOptionsHack = () => {
     );
 };
 
-export default BinaryOptionsHack
+export default BinaryOptionsHack;

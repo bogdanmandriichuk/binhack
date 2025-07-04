@@ -19,7 +19,7 @@
     "binary_options_hack": "बाइनरी विकल्प हैक",
     "binary_calibration_sync": "सर्वर के साथ कैलिब्रेटिंग और सिंक हो रहा है... {progress}%",
     "prediction": "भविष्यवाणी",
-    "loading_prediction": "लोड हो रहा है...",
+    "awaiting_command": "कमांड का इंतजार है...",
     "on_asset": "पर",
     "for_direction": "के लिए",
     "for_time": "के लिए",
@@ -59,10 +59,5 @@
     "positive_feedback": "सकारात्मक प्रतिक्रिया",
     "negative_feedback": "नकारात्मक प्रतिक्रिया",
     "accuracy": "सटीकता",
-    "close": "बंद करें",
-    "profitable_signals": "लाभदायक संकेत",
-    "unprofitable_signals": "अलाभदायक संकेत",
-    "profitable_count": "लाभदायक गणना",
-    "unprofitable_count": "अलाभदायक गणना",
-    "signal_accuracy": "सिग्नल सटीकता"
+    "close": "बंद करें"
 }

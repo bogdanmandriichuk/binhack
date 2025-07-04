@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { useAppContext } from '../../context/AppContext';
 import { verifyAccessKey } from '../../api/api';
 import translations from '../../translations';
-import LanguageSwitcher from '../Common/LanguageSwitcher';
+import LanguageSwitcher from '../Common/LanguageSwitcher'; // Переконайтеся, що шлях правильний
 
 const AuthContainer = styled.div`
   display: flex;
@@ -40,6 +40,10 @@ const Form = styled(motion.div)`
     margin-bottom: 25px;
     line-height: 1.5;
   }
+
+  @media (max-width: 480px) {
+    padding: 25px 15px; /* Зменшений padding для мобільних */
+  }
 `;
 
 const Title = styled.h1`
@@ -47,6 +51,11 @@ const Title = styled.h1`
   margin-bottom: 25px;
   font-size: 2.5rem;
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+
+  @media (max-width: 480px) {
+    font-size: 2rem; /* Зменшений шрифт для мобільних */
+    margin-bottom: 20px;
+  }
 `;
 
 const Subtitle = styled.p`
@@ -54,6 +63,11 @@ const Subtitle = styled.p`
   color: #b0b0b0;
   margin-bottom: 30px;
   line-height: 1.6;
+
+  @media (max-width: 480px) {
+    font-size: 1rem; /* Зменшений шрифт для мобільних */
+    margin-bottom: 25px;
+  }
 `;
 
 const Input = styled.input`
@@ -76,6 +90,11 @@ const Input = styled.input`
     border-color: #FFD700; /* Золотий акцентний колір при фокусі */
     box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3); /* Золоте світіння при фокусі */
   }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+    font-size: 1rem;
+  }
 `;
 
 const Button = styled(motion.button)`
@@ -92,15 +111,20 @@ const Button = styled(motion.button)`
   box-shadow: 0 4px 10px rgba(255, 215, 0, 0.3); /* Золота тінь для кнопки */
 
   &:hover {
-    background-color: #3C3000; /* Темніший золотий при наведенні */
+    background-color: #3C3000;
     box-shadow: 0 6px 15px rgba(255, 215, 0, 0.4);
   }
 
   &:disabled {
-    background-color: #555555; /* Темніший сірий для вимкненої кнопки */
+    background-color: #555555;
     color: #bbbbbb;
     cursor: not-allowed;
     box-shadow: none;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px 20px;
+    font-size: 1rem;
   }
 `;
 
@@ -108,6 +132,13 @@ const Message = styled.p`
   color: #e74c3c; /* Червоний колір для повідомлень про помилки (залишаємо для контрасту) */
   margin-top: 15px;
   font-weight: 500;
+`;
+
+const LanguageSwitcherContainer = styled.div`
+  margin-bottom: 25px; /* Відступ між перемикачем та заголовком */
+  width: 100%;
+  display: flex;
+  justify-content: center; /* Центруємо перемикач всередині форми */
 `;
 
 const AuthPage = () => {
@@ -141,19 +172,22 @@ const AuthPage = () => {
     
     try {
       const data = await verifyAccessKey(localAccessKey);
-      console.log('AuthPage: Data received from verifyAccessKey (from API call):', data); // Додано лог
+      console.log('AuthPage: Raw data received from verifyAccessKey API:', JSON.stringify(data)); // Додано лог з JSON.stringify
       
       if (data) {
         setAccessKey(localAccessKey);
         // Переконайтеся, що data.amount та data.currency існують
         const depositData = { 
-            amount: data.amount, 
-            currency: data.currency 
+            amount: data.deposit_amount, // Виправлено на data.deposit_amount
+            currency: data.deposit_currency // Виправлено на data.deposit_currency
         };
-        console.log('AuthPage: Setting depositInfo to:', depositData); // Додано лог
+        console.log('AuthPage: Prepared depositData for context:', JSON.stringify(depositData)); // Додано лог з JSON.stringify
         setDepositInfo(depositData);
         setIsUnlocked(data.isUnlocked);
         
+        // Логуємо значення контексту відразу після їх встановлення
+        console.log('AuthPage: Context values after setting - accessKey:', localAccessKey, 'isUnlocked:', data.isUnlocked, 'depositInfo:', JSON.stringify(depositData));
+
         // Навігація буде оброблена useEffect після оновлення accessKey та isUnlocked
       } else {
         setMessage(t.invalid_access_key);
@@ -168,12 +202,14 @@ const AuthPage = () => {
 
   return (
     <AuthContainer>
-      <LanguageSwitcher />
       <Form
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
+        <LanguageSwitcherContainer>
+          <LanguageSwitcher />
+        </LanguageSwitcherContainer>
         <Title>{t.welcome_title}</Title>
         <Subtitle>{t.enter_access_key}</Subtitle>
         <Input

@@ -120,9 +120,17 @@ const DepositInfo = () => {
   console.log('DepositInfo component rendered. Current depositInfo:', depositInfo);
   // Додано логи для перевірки конкретних властивостей
   if (depositInfo) {
-    console.log('DepositInfo amount:', depositInfo.amount);
-    console.log('DepositInfo currency:', depositInfo.currency);
+    console.log('DepositInfo amount (on render):', depositInfo.amount);
+    console.log('DepositInfo currency (on render):', depositInfo.currency);
   }
+
+  // New useEffect to log depositInfo when it changes
+  useEffect(() => {
+    console.log('DepositInfo useEffect: depositInfo changed to:', depositInfo);
+    if (depositInfo) {
+      console.log('DepositInfo useEffect: amount is', depositInfo.amount, 'currency is', depositInfo.currency);
+    }
+  }, [depositInfo]);
 
 
   useEffect(() => {
