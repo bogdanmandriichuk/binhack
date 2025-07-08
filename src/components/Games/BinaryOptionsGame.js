@@ -417,14 +417,412 @@ const ConsoleLine = styled.span`
 // Constants for calibration
 const MAX_CALIBRATION_CLICKS = 20;
 
-// List of assets (currency pairs, indices, stocks, commodities)
-const ASSETS = [
-    'ADA/USD', 'Crypto IDX', 'CHF/JPY', 'USD/CAD (OTC)', 'GBP/CHF (OTC)',
-    'EUR/JPY', 'AUD/NZD', 'EUR/USD', 'GBP/JPY (OTC)', 'EUR/GBP (OTC)',
-    'AUD/JPY', 'AUD/CAD', 'USD/CHF', 'GBP/NZD (OTC)', 'NZD/JPY',
-    'EUR IDX', 'EUR/MXN', 'Apple', 'Nvidia', 'Dow Jones IA',
-    'Google', 'Gold', 'Altcoin IDX', 'Bitcoin/USD', 'Ethereum/USD'
-];
+// Розклад активів, отриманий зі скріншотів (час у UTC)
+// Дні тижня: 0 = Неділя, 1 = Понеділок, ..., 6 = Субота
+const ASSET_SCHEDULE = {
+    // FOREX
+    'AUD/CAD': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'AUD/JPY': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'AUD/USD': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'AUD/NZD': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'CAD/CHF': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'CHF/JPY': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'EUR/CAD': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'EUR IDX': {
+        Mon: { start: 7, end: 19 }, Tue: { start: 7, end: 19 }, Wed: { start: 7, end: 19 },
+        Thu: { start: 7, end: 19 }, Fri: { start: 7, end: 18, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'EUR/GBP': {
+        Mon: { start: 10, end: 15 }, Tue: { start: 10, end: 15 }, Wed: { start: 10, end: 15 },
+        Thu: { start: 10, end: 15 }, Fri: { start: 10, end: 15 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'EUR/MXN': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'EUR/NZD': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'EUR/JPY': {
+        Mon: { start: 10, end: 21 }, Tue: { start: 10, end: 21 }, Wed: { start: 10, end: 21 },
+        Thu: { start: 10, end: 21 }, Fri: { start: 10, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'EUR/USD': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'GBP/AUD': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'GBP/CHF': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'GBP/JPY': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'GBP/NZD': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'NZD/JPY': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'NZD/USD': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 17, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'USD/CAD': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 16, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'USD/CHF': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 19 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'USD/DKK': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'USD/JPY': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 15, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'USD/NOK': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 20, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'JPY IDX': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 19 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'EUR/HKD': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 19 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'EUR/CHF': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 18, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'EUR/AUD': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 18, end_min: 55 }, Sat: 'N/A', Sun: 'N/A'
+    },
+
+    // CRYPTO
+    'ADA/USD': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 24 }, Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'Bitcoin': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 24 }, Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'Altcoin IDX': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 24 }, Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'Crypto IDX': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 24 }, Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'Litecoin': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 24 }, Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'BCH/USDT': {
+        Mon: { start: 0, end: 24 }, Tue: { start: 0, end: 24 }, Wed: { start: 0, end: 24 },
+        Thu: { start: 0, end: 24 }, Fri: { start: 0, end: 24 }, Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+
+    // EQUITIES
+    'AIG': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Alibaba': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Apple': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Boeing': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'CitiGroup': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Coca Cola': {
+        Mon: { start: 19, end: 19 }, Tue: { start: 19, end: 19 }, Wed: { start: 19, end: 19 },
+        Thu: { start: 19, end: 19 }, Fri: { start: 19, end: 19 }, Sat: 'N/A', Sun: 'N/A'
+    }, // Час тут дивний, але взято зі скріншоту
+    'eBay': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Ferrari': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Meta': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Google': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'IBM': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Intel': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'JPMorgan': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'JD': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'McDonalds': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Microsoft': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Netflix': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Nvidia': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Tesla': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'PayPal': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Qualcomm': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Starbucks': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Vodafone': {
+        Mon: { start: 15, end: 15 }, Tue: { start: 15, end: 15 }, Wed: { start: 15, end: 15 },
+        Thu: { start: 15, end: 15 }, Fri: { start: 15, end: 15 }, Sat: 'N/A', Sun: 'N/A'
+    }, // Час тут дивний, але взято зі скріншоту
+    'Visa': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Weibo': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Yum! Brands': {
+        Mon: { start: 14, end: 20, end_min: 32 }, Tue: { start: 14, end: 20, end_min: 32 }, Wed: { start: 14, end: 20, end_min: 32 },
+        Thu: { start: 14, end: 20, end_min: 32 }, Fri: { start: 14, end: 20, end_min: 32 }, Sat: 'N/A', Sun: 'N/A'
+    },
+
+    // COMMODITIES
+    'Gold': {
+        Mon: { start: 4, end: 19 }, Tue: { start: 4, end: 19 }, Wed: { start: 4, end: 19 },
+        Thu: { start: 4, end: 19 }, Fri: { start: 4, end: 19 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Silver': {
+        Mon: { start: 8, end: 17 }, Tue: { start: 8, end: 17 }, Wed: { start: 8, end: 17 },
+        Thu: { start: 8, end: 17 }, Fri: { start: 8, end: 17 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Oil': {
+        Mon: { start: 8, end: 20 }, Tue: { start: 8, end: 20 }, Wed: { start: 8, end: 20 },
+        Thu: { start: 8, end: 20 }, Fri: { start: 8, end: 20 }, Sat: 'N/A', Sun: 'N/A'
+    },
+
+    // INDICIES
+    'CAC': {
+        Mon: { start: 8, end: 16, end_min: 25 }, Tue: { start: 8, end: 16, end_min: 25 }, Wed: { start: 8, end: 16, end_min: 25 },
+        Thu: { start: 8, end: 16, end_min: 25 }, Fri: { start: 8, end: 16, end_min: 25 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'Dow Jones IA': {
+        Mon: { start: 14, end: 20, end_min: 40 }, Tue: { start: 14, end: 20, end_min: 40 }, Wed: { start: 14, end: 20, end_min: 40 },
+        Thu: { start: 14, end: 20, end_min: 40 }, Fri: { start: 14, end: 20, end_min: 40 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'AEX': {
+        Mon: { start: 8, end: 16, end_min: 25 }, Tue: { start: 8, end: 16, end_min: 25 }, Wed: { start: 8, end: 16, end_min: 25 },
+        Thu: { start: 8, end: 16, end_min: 25 }, Fri: { start: 8, end: 16, end_min: 25 }, Sat: 'N/A', Sun: 'N/A'
+    },
+    'NASDAQ 100': {
+        Mon: { start: 14, end: 20, end_min: 40 }, Tue: { start: 14, end: 20, end_min: 40 }, Wed: { start: 14, end: 20, end_min: 40 },
+        Thu: { start: 14, end: 20, end_min: 40 }, Fri: { start: 14, end: 20, end_min: 40 }, Sat: 'N/A', Sun: 'N/A'
+    },
+
+    // INDICIES OTC
+    'DJI/USD (OTC)': {
+        Mon: { start: 0, end: 13, end_min: 30 }, Tue: { start: 0, end: 13, end_min: 30 }, Wed: { start: 0, end: 13, end_min: 30 },
+        Thu: { start: 0, end: 13, end_min: 30 }, Fri: { start: 0, end: 13, end_min: 30 }, Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'NDX/USD (OTC)': {
+        Mon: { start: 0, end: 13, end_min: 30 }, Tue: { start: 0, end: 13, end_min: 30 }, Wed: { start: 0, end: 13, end_min: 30 },
+        Thu: { start: 0, end: 13, end_min: 30 }, Fri: { start: 0, end: 13, end_min: 30 }, Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'DAX/EUR (OTC)': {
+        Mon: { start: 9, end: 13, end_min: 30 }, Tue: { start: 9, end: 13, end_min: 30 }, Wed: { start: 9, end: 13, end_min: 30 },
+        Thu: { start: 9, end: 13, end_min: 30 }, Fri: { start: 9, end: 13, end_min: 30 }, Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'SPX/USD (OTC)': {
+        Mon: { start: 5, end: 13, end_min: 30 }, Tue: { start: 5, end: 13, end_min: 30 }, Wed: { start: 5, end: 13, end_min: 30 },
+        Thu: { start: 5, end: 13, end_min: 30 }, Fri: { start: 5, end: 13, end_min: 30 }, Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+
+    // OTC
+    'EUR/CAD (OTC)': {
+        Mon: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Tue: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Wed: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Thu: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Fri: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'USD/JPY (OTC)': {
+        Mon: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Tue: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Wed: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Thu: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Fri: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'GBP/USD (OTC)': {
+        Mon: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Tue: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Wed: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Thu: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Fri: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'EUR/USD (OTC)': {
+        Mon: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Tue: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Wed: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Thu: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Fri: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'AUD/CAD (OTC)': {
+        Mon: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Tue: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Wed: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Thu: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Fri: [{ start: 0, end: 0, end_min: 55 }, { start: 21, end: 24 }],
+        Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'GBP/JPY (OTC)': {
+        Mon: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Tue: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Wed: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Thu: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Fri: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'CHF/JPY (OTC)': {
+        Mon: [{ start: 0, end: 0, end_min: 55 }, { start: 20, end: 24, end_min: 5 }],
+        Tue: [{ start: 0, end: 0, end_min: 55 }, { start: 20, end: 24, end_min: 5 }],
+        Wed: [{ start: 0, end: 0, end_min: 55 }, { start: 20, end: 24, end_min: 5 }],
+        Thu: [{ start: 0, end: 0, end_min: 55 }, { start: 20, end: 24, end_min: 5 }],
+        Fri: [{ start: 0, end: 0, end_min: 55 }, { start: 20, end: 24, end_min: 5 }],
+        Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'AUD/USD (OTC)': {
+        Mon: [{ start: 0, end: 0, end_min: 55 }, { start: 18, end: 24, end_min: 5 }],
+        Tue: [{ start: 0, end: 0, end_min: 55 }, { start: 18, end: 24, end_min: 5 }],
+        Wed: [{ start: 0, end: 0, end_min: 55 }, { start: 18, end: 24, end_min: 5 }],
+        Thu: [{ start: 0, end: 0, end_min: 55 }, { start: 18, end: 24, end_min: 5 }],
+        Fri: [{ start: 0, end: 0, end_min: 55 }, { start: 18, end: 24, end_min: 5 }],
+        Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'EUR/GBP (OTC)': {
+        Mon: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24, end_min: 5 }],
+        Tue: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24, end_min: 5 }],
+        Wed: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24, end_min: 5 }],
+        Thu: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24, end_min: 5 }],
+        Fri: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24, end_min: 5 }],
+        Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'GBP/CHF (OTC)': {
+        Mon: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Tue: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Wed: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Thu: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Fri: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'GBP/NZD (OTC)': {
+        Mon: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Tue: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Wed: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Thu: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Fri: [{ start: 0, end: 0, end_min: 55 }, { start: 15, end: 24 }],
+        Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'USD/CAD (OTC)': {
+        Mon: [{ start: 0, end: 0, end_min: 55 }, { start: 17, end: 24, end_min: 5 }],
+        Tue: [{ start: 0, end: 0, end_min: 55 }, { start: 17, end: 24, end_min: 5 }],
+        Wed: [{ start: 0, end: 0, end_min: 55 }, { start: 17, end: 24, end_min: 5 }],
+        Thu: [{ start: 0, end: 0, end_min: 55 }, { start: 17, end: 24, end_min: 5 }],
+        Fri: [{ start: 0, end: 0, end_min: 55 }, { start: 17, end: 24, end_min: 5 }],
+        Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+    'NZD/USD (OTC)': {
+        Mon: [{ start: 0, end: 0, end_min: 55 }, { start: 18, end: 24, end_min: 5 }],
+        Tue: [{ start: 0, end: 0, end_min: 55 }, { start: 18, end: 24, end_min: 5 }],
+        Wed: [{ start: 0, end: 0, end_min: 55 }, { start: 18, end: 24, end_min: 5 }],
+        Thu: [{ start: 0, end: 0, end_min: 55 }, { start: 18, end: 24, end_min: 5 }],
+        Fri: [{ start: 0, end: 0, end_min: 55 }, { start: 18, end: 24, end_min: 5 }],
+        Sat: { start: 0, end: 24 }, Sun: { start: 0, end: 24 }
+    },
+};
+
 
 const CONSOLE_MESSAGES = [
     "INIT: Establishing secure connection to broker API...",
@@ -447,6 +845,73 @@ const CONSOLE_MESSAGES = [
     "SUCCESS: Operation completed."
 ];
 
+// Функція для перевірки, чи актив доступний за розкладом
+const isAssetAvailable = (assetName) => {
+    const schedule = ASSET_SCHEDULE[assetName];
+    if (!schedule) {
+        return false; 
+    }
+
+    const now = new Date();
+    const utcDay = now.getUTCDay(); // День тижня (0-6, 0=Неділя)
+    const utcHour = now.getUTCHours(); // Година у UTC (0-23)
+    const utcMinute = now.getUTCMinutes(); // Хвилина у UTC (0-59)
+
+    const dayMap = {
+        0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat'
+    };
+    const currentDay = dayMap[utcDay];
+    const daySchedule = schedule[currentDay];
+
+    if (!daySchedule || daySchedule === 'N/A') {
+        return false;
+    }
+
+    // Обробка розкладу з кількома інтервалами (для OTC)
+    if (Array.isArray(daySchedule)) {
+        for (const interval of daySchedule) {
+            const startHour = interval.start;
+            const startMinute = interval.start_min || 0;
+            const endHour = interval.end;
+            const endMinute = interval.end_min || 0;
+
+            // Перевірка, чи поточний час знаходиться в межах інтервалу
+            if (utcHour > startHour && utcHour < endHour) {
+                return true;
+            }
+            if (utcHour === startHour && utcMinute >= startMinute) {
+                return true;
+            }
+            if (utcHour === endHour && utcMinute < endMinute) {
+                return true;
+            }
+        }
+        return false; // Якщо жоден інтервал не підходить
+    } else { // Обробка простого розкладу
+        const startHour = daySchedule.start;
+        const startMinute = daySchedule.start_min || 0;
+        const endHour = daySchedule.end;
+        const endMinute = daySchedule.end_min || 0;
+
+        // Перевірка, чи поточний час знаходиться в межах інтервалу
+        if (utcHour > startHour && utcHour < endHour) {
+            return true;
+        }
+        if (utcHour === startHour && utcMinute >= startMinute) {
+            return true;
+        }
+        if (utcHour === endHour && utcMinute < endMinute) {
+            return true;
+        }
+        // Спеціальна обробка для end: 24 (кінець дня)
+        if (endHour === 24 && utcHour >= startHour) {
+             return true;
+        }
+        return false;
+    }
+};
+
+
 const BinaryOptionsHack = () => {
     const allowedCurrencies = ['USD', 'INR'];
 
@@ -465,12 +930,36 @@ const BinaryOptionsHack = () => {
     const [feedbackClicks, setFeedbackClicks] = useState({ up: 0, down: 0 });
     const [showStatsModal, setShowStatsModal] = useState(false);
     const [consoleOutput, setConsoleOutput] = useState([]);
+    const [availableAssets, setAvailableAssets] = useState([]); // Новий стан для доступних активів
+    const [message, setMessage] = useState(''); // Стан для повідомлень користувачу, якщо немає доступних активів
 
     const consoleRef = useRef(null);
 
     const t = translations[language];
 
     const { progress, isCalibrated } = useProgress(calibrationClicks, MAX_CALIBRATION_CLICKS);
+
+    // Оновлення доступних активів на основі розкладу
+    useEffect(() => {
+        const updateAvailableAssets = () => {
+            const allAssets = Object.keys(ASSET_SCHEDULE);
+            const currentAvailable = allAssets.filter(isAssetAvailable);
+            setAvailableAssets(currentAvailable);
+            console.log("Available assets updated:", currentAvailable);
+            if (currentAvailable.length === 0) {
+                setMessage(t.no_assets_available); // Встановлюємо повідомлення, якщо немає активів
+            } else {
+                setMessage(''); // Очищаємо повідомлення, якщо активи є
+            }
+        };
+
+        // Оновлюємо список доступних активів кожну хвилину
+        const intervalId = setInterval(updateAvailableAssets, 60 * 1000); // Оновлювати кожну хвилину
+        updateAvailableAssets(); // Викликати одразу при завантаженні
+
+        return () => clearInterval(intervalId); // Очистити інтервал при розмонтуванні компонента
+    }, [t.no_assets_available]); // Додано t.no_assets_available в залежності, щоб оновлювалося при зміні мови
+
 
     // Effect for Console output simulation
     useEffect(() => {
@@ -482,10 +971,9 @@ const BinaryOptionsHack = () => {
                 if (messageIndex < CONSOLE_MESSAGES.length) {
                     const message = CONSOLE_MESSAGES[messageIndex];
                     let type = 'info';
-                    if (message.includes('ERROR')) type = 'error';
+                    if (message.includes('ERROR') || message.includes('WARNING')) type = 'error';
                     if (message.includes('SUCCESS') || message.includes('READY') || message.includes('GRANTED') || message.includes('COMPLETED')) type = 'success';
-                    if (message.includes('WARNING')) type = 'error'; // Treat warnings as errors for console coloring
-
+                    
                     setConsoleOutput(prev => [...prev, { text: message, type }]);
                     messageIndex++;
                 } else {
@@ -548,24 +1036,32 @@ const BinaryOptionsHack = () => {
         setDirection('...'); // Reset direction while loading
         setSelectedAsset(null); // Set to null to trigger "Calculating new signal..."
         
-        // Automatically generate a random asset
-        const randomAsset = ASSETS[Math.floor(Math.random() * ASSETS.length)];
-        console.log("Randomly selected asset:", randomAsset);
+        // Вибираємо випадковий актив лише з доступних активів
+        if (availableAssets.length > 0) {
+            const randomAsset = availableAssets[Math.floor(Math.random() * availableAssets.length)];
+            console.log("Randomly selected available asset:", randomAsset);
 
-        // Simulate asset selection and confirmation
-        setTimeout(() => {
-            setSelectedAsset(randomAsset); // Set the automatically generated asset
-            setConsoleOutput(prev => [...prev, { text: `ASSET SELECTION: ${randomAsset} confirmed.`, type: "success" }]);
-            
-            // Then simulate signal generation after another delay
+            // Simulate asset selection and confirmation
             setTimeout(() => {
-                const newDirection = Math.random() > 0.5 ? 'UP' : 'DOWN';
-                setDirection(newDirection);
-                setIsSignalLoading(false);
-                setIsSignalReady(true);
-                console.log(`Signal generated: ${newDirection} for asset: ${randomAsset}`);
-            }, 1000); // Shorter delay before signal appears
-        }, 1500); // Simulate network request delay for asset selection
+                setSelectedAsset(randomAsset); // Set the automatically generated asset
+                setConsoleOutput(prev => [...prev, { text: `ASSET SELECTION: ${randomAsset} confirmed.`, type: "success" }]);
+                
+                // Then simulate signal generation after another delay
+                setTimeout(() => {
+                    const newDirection = Math.random() > 0.5 ? 'UP' : 'DOWN';
+                    setDirection(newDirection);
+                    setIsSignalLoading(false);
+                    setIsSignalReady(true);
+                    console.log(`Signal generated: ${newDirection} for asset: ${randomAsset}`);
+                }, 1000); // Shorter delay before signal appears
+            }, 1500); // Simulate network request delay for asset selection
+        } else {
+            console.warn("No assets currently available according to the schedule.");
+            setConsoleOutput(prev => [...prev, { text: "ERROR: No assets currently available. Please check schedule.", type: "error" }]);
+            setIsSignalLoading(false);
+            setIsSignalReady(false);
+            setMessage(t.no_assets_available); // Встановлюємо повідомлення, якщо немає доступних активів
+        }
     };
 
     const handleFeedbackClick = (type) => {
@@ -760,7 +1256,7 @@ const BinaryOptionsHack = () => {
 
                 <Button
                     onClick={handleGetSignal}
-                    disabled={isSignalLoading}
+                    disabled={isSignalLoading || availableAssets.length === 0} // Деактивуємо кнопку, якщо немає доступних активів
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                 >
@@ -826,6 +1322,12 @@ const BinaryOptionsHack = () => {
                     </ConsoleContainer>
                 )}
             </AnimatePresence>
+
+            {message && ( // Відображаємо повідомлення, якщо немає доступних активів
+                <NotificationMessage style={{ color: '#ff0000', marginTop: '1rem' }}>
+                    {message}
+                </NotificationMessage>
+            )}
 
             <FeedbackContainer>
                 <FeedbackText>{t.feedback_instruction}</FeedbackText>
