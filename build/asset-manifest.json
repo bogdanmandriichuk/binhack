@@ -1,0 +1,11 @@
+{
+  "files": {
+    "main.js": "/binhack/static/js/main.2017573e.js",
+    "static/media/chicken-road-bg.jpg": "/binhack/static/media/chicken-road-bg.0c5500b98f3a27cf18ba.jpg",
+    "index.html": "/binhack/index.html",
+    "main.2017573e.js.map": "/binhack/static/js/main.2017573e.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.2017573e.js"
+  ]
+}
