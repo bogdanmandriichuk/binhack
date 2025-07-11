@@ -108,12 +108,35 @@ const Message = styled.p`
   font-weight: 500;
 `;
 
+// Новий стилізований компонент для кнопки Telegram
+const TelegramButton = styled(motion.a)`
+  width: 100%;
+  background-color: #0088cc; /* Колір Telegram */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 15px 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 10px rgba(0, 136, 204, 0.3); /* Тінь Telegram */
+  text-decoration: none; /* Прибираємо підкреслення для посилання */
+  display: inline-block; /* Щоб padding та width працювали як на кнопці */
+  margin-top: 20px; /* Відступ від кнопки авторизації */
+
+  &:hover {
+    background-color: #007bb5;
+    box-shadow: 0 6px 15px rgba(0, 136, 204, 0.4);
+  }
+`;
+
 const DepositInfo = () => {
   const [unlockKey, setUnlockKey] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   
-  const { language, depositInfo, setIsUnlocked, accessKey, setShowUnlockConfirmationModal } = useAppContext();
+  const { language, depositInfo, setIsUnlocked, accessKey, setShowUnlockConfirmationModal, isUnlocked } = useAppContext();
   const t = translations[language];
 
   // Додано лог для перевірки depositInfo при рендері
@@ -124,43 +147,44 @@ const DepositInfo = () => {
     console.log('DepositInfo currency (on render):', depositInfo.currency);
   }
 
-  // New useEffect to log depositInfo when it changes
-  useEffect(() => {
-    console.log('DepositInfo useEffect: depositInfo changed to:', depositInfo);
-    if (depositInfo) {
-      console.log('DepositInfo useEffect: amount is', depositInfo.amount, 'currency is', depositInfo.currency);
-    }
-  }, [depositInfo]);
-
 
   useEffect(() => {
+    // Додано лог для відстеження змін accessKey
+    console.log('DepositInfo useEffect: accessKey changed to:', accessKey);
     if (!accessKey) {
         // Логіка перенаправлення на AuthPage, якщо accessKey відсутній
         // (зазвичай це робиться в App.js або Dashboard.js, якщо DepositInfo є його частиною)
+        console.log('DepositInfo: accessKey is null, component might not be needed here.');
     }
   }, [accessKey]);
 
   const handleUnlock = async () => {
+    console.log('DepositInfo handleUnlock: Attempting to unlock access.');
     if (!unlockKey) {
       setMessage('Please enter the unlock key.');
+      console.warn('DepositInfo handleUnlock: Unlock key input is empty.');
       return;
     }
     setLoading(true);
     setMessage('');
+    console.log(`DepositInfo handleUnlock: Verifying unlock key for accessKey: ${accessKey}, unlockKey: ${unlockKey}`);
     try {
       await verifyUnlockKey(accessKey, unlockKey); 
       setIsUnlocked(true);
       setShowUnlockConfirmationModal(true);
+      console.log('DepositInfo handleUnlock: Unlock successful. isUnlocked set to true, showing confirmation modal.');
     } catch (error) {
+      console.error('DepositInfo handleUnlock: Error during unlock:', error);
       setMessage(t.invalid_unlock_key);
     } finally {
       setLoading(false);
+      console.log('DepositInfo handleUnlock: Unlock attempt finished, setting loading to false.');
     }
   };
 
-  // Компонент відображається лише тоді, коли є depositInfo
-  if (!depositInfo) {
-    console.log('DepositInfo: depositInfo is null, returning null.');
+  // Компонент відображається лише тоді, коли є depositInfo І хак НЕ розблоковано
+  if (!depositInfo || isUnlocked) {
+    console.log('DepositInfo: Not displaying because depositInfo is null/undefined or already unlocked.');
     return null;
   }
   

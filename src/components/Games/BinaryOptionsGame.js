@@ -1,23 +1,27 @@
-// src/components/Games/BinaryOptionsHack.js
+// src/components/Games/BinaryOptionsGame.js
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { useProgress } from '../../hooks/useProgress';
 import { motion, AnimatePresence } from 'framer-motion';
-import Switcher from '../../styles/Switcher'; // Переконайтеся, що шлях правильний
+import Switcher from '../../styles/Switcher';
 import translations from '../../translations';
 import { useAppContext } from '../../context/AppContext';
-import SignalStatsModal from './SignalStatsModal'; // Переконайтеся, що шлях правильний
+import SignalStatsModal from './SignalStatsModal';
 
 // Import Font Awesome components and icons
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faThumbsUp, faThumbsDown, faArrowUp, faArrowDown, faCheckCircle, faCog } from '@fortawesome/free-solid-svg-icons';
 
 // Import the background image
-import backgroundImage from '../../assets/chicken-road-bg.jpg'; // Переконайтеся, що шлях до зображення правильний
+import backgroundImage from '../../assets/chicken-road-bg.jpg';
+
+// Import API functions for sending feedback and signal clicks
+import { sendFeedback, sendSignalClick } from '../../api/api';
 
 
-// --- Styled Components (Updated & New) ---
+// --- Styled Components (Updated for Responsiveness) ---
 
-const GameCard = styled.div`
+const GameContainer = styled.div`
     padding: 2.5rem; /* Use rem for responsive padding */
     text-align: center;
     background-color: #3C3000; /* Dark yellow/gold background */
@@ -221,30 +225,42 @@ const PredictionDisplay = styled.h4`
 `;
 
 const PredictionIconWrapper = styled(motion.div)`
-    font-size: 3rem; /* Larger icon */
-    color: ${props => props.$isUp ? '#32CD32' : '#FF4500'}; /* LimeGreen for UP, OrangeRed for DOWN */
+    font-size: 3rem; /* Base icon size */
+    color: ${props => props.$isUp ? '#32CD32' : '#FF4500'};
     display: flex;
     align-items: center;
     justify-content: center;
+
+    @media (max-width: 480px) {
+        font-size: 2.5rem; /* Smaller on mobile */
+    }
 `;
 
 const PredictionText = styled(motion.span)`
     font-weight: bold;
-    font-size: 2.2rem; /* Make the text slightly smaller than icon but still prominent */
-    color: ${props => props.$isUp ? '#32CD32' : '#FF4500'}; /* Match icon color */
+    font-size: 2.2rem; /* Base text size */
+    color: ${props => props.$isUp ? '#32CD32' : '#FF4500'};
+
+    @media (max-width: 480px) {
+        font-size: 1.2rem; /* Зменшено для мобільних */
+    }
 `;
 
 const AssetConfirmationDisplay = styled(motion.div)`
-    font-size: 1.5rem;
+    font-size: 1.5rem; /* Base font size */
     font-weight: bold;
-    color: #FFD700; /* Gold color for emphasis */
+    color: #FFD700;
     margin-bottom: 1rem; /* Use rem */
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.5rem; /* Use rem */
     text-shadow: 0 0 5px rgba(0,0,0,0.5);
-    min-height: 30px; /* Ensure it occupies space even when showing a temporary message */
+    min-height: 30px;
+
+    @media (max-width: 480px) {
+        font-size: 1.2rem; /* Smaller on mobile */
+    }
 `;
 
 const spinning = keyframes`
@@ -272,17 +288,26 @@ const FeedbackText = styled.p`
     margin-bottom: 1rem; /* Use rem */
     max-width: 300px;
     text-shadow: 0 0 3px rgba(0,0,0,0.5);
+
+    @media (max-width: 480px) {
+        font-size: 0.8rem;
+        max-width: 90%;
+    }
 `;
 
 const FeedbackButtons = styled.div`
     display: flex;
     gap: 2rem; /* Use rem */
+
+    @media (max-width: 480px) {
+        gap: 1.5rem;
+    }
 `;
 
 const FeedbackButton = styled(motion.button)`
     background: none;
     border: none;
-    font-size: 2.5rem;
+    font-size: 2.5rem; /* Base icon size */
     cursor: pointer;
     color: white;
     transition: transform 0.2s;
@@ -290,6 +315,10 @@ const FeedbackButton = styled(motion.button)`
     padding: 0.5rem; 
     min-width: 48px; /* Minimum touch target size */
     min-height: 48px;
+
+    @media (max-width: 480px) {
+        font-size: 2rem; /* Smaller on mobile */
+    }
 `;
 
 const ViewStatsButton = styled(motion.button)`
@@ -308,6 +337,11 @@ const ViewStatsButton = styled(motion.button)`
         background-color: white;
         color: #3C3000;
     }
+
+    @media (max-width: 480px) {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.8rem;
+    }
 `;
 
 const SwitcherGroup = styled.div`
@@ -316,6 +350,12 @@ const SwitcherGroup = styled.div`
     gap: 2rem; /* Use rem */
     margin-top: 1.5rem; /* Use rem */
     flex-wrap: wrap; /* Allow switchers to wrap */
+
+    @media (max-width: 480px) {
+        flex-direction: column; /* Stack vertically on mobile */
+        gap: 1rem;
+        align-items: center;
+    }
 `;
 
 const NotificationMessage = styled(motion.p)`
@@ -324,6 +364,10 @@ const NotificationMessage = styled(motion.p)`
     color: white;
     margin-bottom: 1.5rem; /* Use rem */
     text-shadow: 0 0 5px rgba(0,0,0,0.5);
+
+    @media (max-width: 480px) {
+        font-size: 1rem;
+    }
 `;
 
 // --- Hacker Console Styles ---
@@ -341,12 +385,12 @@ const ConsoleContainer = styled(motion.div)`
     margin-bottom: 1.5rem; /* Use rem */
     font-family: 'Share Tech Mono', monospace; /* Hacking font */
     color: #FFD700; /* Gold text */
-    font-size: 0.9rem;
+    font-size: 0.9rem; /* Base font size */
     height: 150px; /* Fixed height for the console */
     overflow-y: auto; /* Allow scrolling */
     text-align: left;
-    white-space: pre-wrap; /* Preserve whitespace and break lines */
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); /* Gold glow */
+    white-space: pre-wrap;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
     position: relative;
     line-height: 1.4;
 
@@ -357,6 +401,12 @@ const ConsoleContainer = styled(motion.div)`
         position: absolute;
         bottom: 0.5rem; /* Responsive position */
         right: 0.75rem; /* Responsive position */
+    }
+
+    @media (max-width: 480px) {
+        font-size: 0.8rem; /* Smaller on mobile */
+        padding: 0.75rem;
+        height: 120px; /* Slightly smaller height */
     }
 `;
 
@@ -505,28 +555,36 @@ const ASSET_SCHEDULE = {
 
     // INDICIES OTC (image_46c8a2.png)
     'DJI/USD (OTC)': {
-        Mon: { start: 0, start_min: 0, end: 13, end_min: 30 }, Tue: { start: 0, start_min: 0, end: 13, end_min: 30 },
-        Wed: { start: 0, start_min: 0, end: 13, end_min: 30 }, Thu: { start: 0, start_min: 0, end: 13, end_min: 30 },
-        Fri: { start: 0, start_min: 0, end: 13, end_min: 30 }, Sat: { start: 0, start_min: 0, end: 24, end_min: 0 },
-        Sun: { start: 0, start_min: 0, end: 24, end_min: 0 }
+        Mon: [{ start: 0, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Tue: [{ start: 0, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Wed: [{ start: 0, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Thu: [{ start: 0, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Fri: [{ start: 0, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Sat: { start: 0, start_min: 0, end: 24, end_min: 0 }, Sun: { start: 0, start_min: 0, end: 24, end_min: 0 }
     },
     'NDX/USD (OTC)': {
-        Mon: { start: 0, start_min: 0, end: 13, end_min: 30 }, Tue: { start: 0, start_min: 0, end: 13, end_min: 30 },
-        Wed: { start: 0, start_min: 0, end: 13, end_min: 30 }, Thu: { start: 0, start_min: 0, end: 13, end_min: 30 },
-        Fri: { start: 0, start_min: 0, end: 13, end_min: 30 }, Sat: { start: 0, start_min: 0, end: 24, end_min: 0 },
-        Sun: { start: 0, start_min: 0, end: 24, end_min: 0 }
+        Mon: [{ start: 0, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Tue: [{ start: 0, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Wed: [{ start: 0, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Thu: [{ start: 0, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Fri: [{ start: 0, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Sat: { start: 0, start_min: 0, end: 24, end_min: 0 }, Sun: { start: 0, start_min: 0, end: 24, end_min: 0 }
     },
     'DAX/EUR (OTC)': {
-        Mon: { start: 9, start_min: 0, end: 13, end_min: 30 }, Tue: { start: 9, start_min: 0, end: 13, end_min: 30 },
-        Wed: { start: 9, start_min: 0, end: 13, end_min: 30 }, Thu: { start: 9, start_min: 0, end: 13, end_min: 30 },
-        Fri: { start: 9, start_min: 0, end: 13, end_min: 30 }, Sat: { start: 0, start_min: 0, end: 24, end_min: 0 },
-        Sun: { start: 0, start_min: 0, end: 24, end_min: 0 }
+        Mon: [{ start: 9, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Tue: [{ start: 9, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Wed: [{ start: 9, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Thu: [{ start: 9, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Fri: [{ start: 9, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Sat: { start: 0, start_min: 0, end: 24, end_min: 0 }, Sun: { start: 0, start_min: 0, end: 24, end_min: 0 }
     },
     'SPX/USD (OTC)': {
-        Mon: { start: 5, start_min: 0, end: 13, end_min: 30 }, Tue: { start: 5, start_min: 0, end: 13, end_min: 30 },
-        Wed: { start: 5, start_min: 0, end: 13, end_min: 30 }, Thu: { start: 5, start_min: 0, end: 13, end_min: 30 },
-        Fri: { start: 5, start_min: 0, end: 13, end_min: 30 }, Sat: { start: 0, start_min: 0, end: 24, end_min: 0 },
-        Sun: { start: 0, start_min: 0, end: 24, end_min: 0 }
+        Mon: [{ start: 5, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Tue: [{ start: 5, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Wed: [{ start: 5, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Thu: [{ start: 5, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Fri: [{ start: 5, start_min: 0, end: 13, end_min: 30 }, { start: 20, start_min: 45, end: 24, end_min: 0 }],
+        Sat: { start: 0, start_min: 0, end: 24, end_min: 0 }, Sun: { start: 0, start_min: 0, end: 24, end_min: 0 }
     },
 
     // OTC (image_46c87e.png) - Multiple intervals on weekdays, 24/7 on weekends
@@ -672,17 +730,13 @@ const isAssetAvailable = (assetName) => {
         let endHour = interval.end;
         let endMinute = interval.end_min || 0;
 
-        // Convert 24:00 to 23:59:59 equivalent for comparison if it's the end of the current day
-        // If endHour is 24, it means it runs until the very end of that UTC day.
-        // So, the end time in minutes should be 24 * 60 = 1440.
         const startTimeInMinutes = startHour * 60 + startMinute;
         const endTimeInMinutes = endHour * 60 + endMinute;
 
-        // If start time is greater than or equal to end time, the interval is invalid (e.g., 19:00-19:00)
-        // or it spans across midnight (which is handled by multiple intervals in the schedule structure,
-        // so each interval should be within a single day).
         if (startTimeInMinutes >= endTimeInMinutes) {
-            return false;
+            // Handles cases where end time is on the next day (e.g., 23:00 - 01:00)
+            // For simplicity, assuming intervals are within a single UTC day
+            return false; 
         }
 
         return currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes;
@@ -714,12 +768,13 @@ const BinaryOptionsHack = () => {
     const [direction, setDirection] = useState('...');
     const [isAntiDetectOn, setIsAntiDetectOn] = useState(false);
     const [isLegitModeOn, setIsLegitModeOn] = useState(false);
-    // Використовуємо calibrationClicks з AppContext для збереження стану
-    const { language, calibrationClicks, setCalibrationClicks } = useAppContext(); 
+    // Використовуємо calibrationClicks та accessKey з AppContext
+    const { language, calibrationClicks, setCalibrationClicks, accessKey } = useAppContext(); 
     const [isSignalLoading, setIsSignalLoading] = useState(false);
     const [isSignalReady, setIsSignalReady] = useState(false);
-    const [feedbackClicks, setFeedbackClicks] = useState({ up: 0, down: 0 });
-    const [showStatsModal, setShowStatsModal] = useState(false);
+    // feedbackClicks більше не потрібен тут, SignalStatsModal буде отримувати його з бекенду
+    // const [feedbackClicks, setFeedbackClicks] = useState({ up: 0, down: 0 }); 
+    const [showStatsModal, setShowStatsModal] = useState(false); // Повертаємо стан для модального вікна
     const [consoleOutput, setConsoleOutput] = useState([]);
     const [availableAssets, setAvailableAssets] = useState([]); // Новий стан для доступних активів
     const [message, setMessage] = useState(''); // Стан для повідомлень користувачу, якщо немає доступних активів
@@ -807,8 +862,6 @@ const BinaryOptionsHack = () => {
     const handlePlaceBet = () => {
         console.log("User clicked: Make Trade Now button");
         if (isCalibrated && isSignalReady) {
-            // Using a custom alert/message box is recommended instead of browser's alert()
-            // For now, keeping alert for simplicity based on previous context
             alert(`${t.bet_placed_alert} ${betAmount || '...'} ${currency} ${t.on_asset} ${selectedAsset} ${t.for_direction} ${direction} ${t.for_time} ${betTime}`);
             setIsSignalReady(false);
             setDirection('...');
@@ -817,55 +870,72 @@ const BinaryOptionsHack = () => {
         }
     };
 
-    const handleGetSignal = () => {
+    const handleGetSignal = async () => { // Зроблено асинхронною
         console.log("User clicked: Get Signal button");
         if (!isCalibrated) {
-            setCalibrationClicks(prev => prev + 1); // Оновлюємо calibrationClicks через AppContext
+            setCalibrationClicks(prev => prev + 1);
             console.log(`Calibration click: ${calibrationClicks + 1}/${MAX_CALIBRATION_CLICKS}`);
         }
         
         setIsSignalLoading(true);
         setIsSignalReady(false);
-        setDirection('...'); // Reset direction while loading
-        setSelectedAsset(null); // Set to null to trigger "Calculating new signal..."
+        setDirection('...');
+        setSelectedAsset(null);
         
-        // Вибираємо випадковий актив лише з доступних активів
+        // Відправка кліку на кнопку "Отримати сигнал" на бекенд
+        if (accessKey) {
+            try {
+                await sendSignalClick(accessKey); // Розкоментовано
+                console.log('Signal click sent to backend successfully.');
+            } catch (error) {
+                console.error('Failed to send signal click to backend:', error);
+            }
+        } else {
+            console.warn('Access key not available, cannot send signal click to backend.');
+        }
+
         if (availableAssets.length > 0) {
             const randomAsset = availableAssets[Math.floor(Math.random() * availableAssets.length)];
             console.log("Randomly selected available asset:", randomAsset);
 
-            // Simulate asset selection and confirmation
             setTimeout(() => {
-                setSelectedAsset(randomAsset); // Set the automatically generated asset
+                setSelectedAsset(randomAsset);
                 setConsoleOutput(prev => [...prev, { text: `ASSET SELECTION: ${randomAsset} confirmed.`, type: "success" }]);
                 
-                // Then simulate signal generation after another delay
                 setTimeout(() => {
                     const newDirection = Math.random() > 0.5 ? 'UP' : 'DOWN';
                     setDirection(newDirection);
                     setIsSignalLoading(false);
                     setIsSignalReady(true);
                     console.log(`Signal generated: ${newDirection} for asset: ${randomAsset}`);
-                }, 1000); // Shorter delay before signal appears
-            }, 1500); // Simulate network request delay for asset selection
+                }, 1000);
+            }, 1500);
         } else {
             console.warn("No assets currently available according to the schedule.");
             setConsoleOutput(prev => [...prev, { text: "ERROR: No assets currently available. Please check schedule.", type: "error" }]);
             setIsSignalLoading(false);
             setIsSignalReady(false);
-            setMessage(t.no_assets_available); // Встановлюємо повідомлення, якщо немає доступних активів
+            setMessage(t.no_assets_available);
         }
     };
 
-    const handleFeedbackClick = (type) => {
+    const handleFeedbackClick = async (type) => { // Зроблено асинхронною
         console.log(`User clicked feedback: ${type}`);
-        setFeedbackClicks(prev => ({
-            ...prev,
-            [type]: prev[type] + 1
-        }));
+        // Відправка зворотного зв'язку на бекенд
+        if (accessKey) {
+            try {
+                await sendFeedback(accessKey, type); // Розкоментовано
+                console.log(`Feedback '${type}' sent to backend successfully.`);
+            } catch (error) {
+                console.error(`Failed to send feedback '${type}' to backend:`, error);
+            }
+        } else {
+            console.warn('Access key not available, cannot send feedback to backend.');
+        }
         setConsoleOutput(prev => [...prev, { text: `FEEDBACK: User reported signal as ${type === 'up' ? 'accurate' : 'inaccurate'}.`, type: type === 'up' ? "success" : "error" }]);
     };
 
+    // Повертаємо handleViewStats та handleCloseStats
     const handleViewStats = () => {
         console.log("User clicked: View Signal Statistics button");
         setShowStatsModal(true);
@@ -913,7 +983,7 @@ const BinaryOptionsHack = () => {
 
 
     return (
-        <GameCard $backgroundImage={backgroundImage}>
+        <GameContainer $backgroundImage={backgroundImage}>
             <h3>{t.binary_options_hack}</h3>
             <AnimatePresence mode="wait">
                 {!isCalibrated ? (
@@ -1048,7 +1118,7 @@ const BinaryOptionsHack = () => {
 
                 <Button
                     onClick={handleGetSignal}
-                    disabled={isSignalLoading || availableAssets.length === 0} // Деактивуємо кнопку, якщо немає доступних активів
+                    disabled={isSignalLoading || availableAssets.length === 0}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                 >
@@ -1115,7 +1185,7 @@ const BinaryOptionsHack = () => {
                 )}
             </AnimatePresence>
 
-            {message && ( // Відображаємо повідомлення, якщо немає доступних активів
+            {message && (
                 <NotificationMessage style={{ color: '#ff0000', marginTop: '1rem' }}>
                     {message}
                 </NotificationMessage>
@@ -1132,7 +1202,7 @@ const BinaryOptionsHack = () => {
                     </FeedbackButton>
                 </FeedbackButtons>
                 <AnimatePresence>
-                    {feedbackClicks.up + feedbackClicks.down > 0 && (
+                    {accessKey && ( 
                         <ViewStatsButton
                             onClick={handleViewStats}
                             initial={{ opacity: 0, y: 10 }}
@@ -1164,15 +1234,15 @@ const BinaryOptionsHack = () => {
             </SwitcherGroup>
 
             <AnimatePresence>
-                {showStatsModal && (
+                {showStatsModal && accessKey && (
                     <SignalStatsModal
-                        feedbackClicks={feedbackClicks}
                         onClose={handleCloseStats}
+                        accessKey={accessKey}
                         key="stats-modal"
                     />
                 )}
             </AnimatePresence>
-        </GameCard>
+        </GameContainer>
     );
 };
 

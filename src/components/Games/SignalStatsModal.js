@@ -1,8 +1,11 @@
-import React from 'react';
+// src/components/Games/SignalStatsModal.js
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import { useAppContext } from '../../context/AppContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import translations from '../../translations';
+import { useAppContext } from '../../context/AppContext';
+import { getUserFeedbackStats, getUserSignalClicksStats } from '../../api/api';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 
 const ModalOverlay = styled(motion.div)`
   position: fixed;
@@ -12,165 +15,222 @@ const ModalOverlay = styled(motion.div)`
   height: 100%;
   background-color: rgba(0, 0, 0, 0.7);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 9999;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
 `;
 
 const ModalContent = styled(motion.div)`
-  background-color: var(--card-background);
-  padding: 30px;
+  background-color: #2a2a2a;
   border-radius: 15px;
-  box-shadow: var(--shadow);
-  max-width: 500px;
-  width: 90%;
+  padding: 40px 30px;
   text-align: center;
+  max-width: 600px; /* Збільшено максимальну ширину для графіків */
+  width: 90%;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 5px 15px rgba(0, 0, 0, 0.3);
+  color: #e0e0e0;
+  border: 1px solid #FFD700;
   position: relative;
+
+  @media (max-width: 768px) {
+    padding: 30px 20px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 20px 15px;
+  }
 `;
 
-const CloseButton = styled.button`
+const CloseButton = styled(motion.button)`
   position: absolute;
   top: 15px;
   right: 15px;
   background: none;
   border: none;
-  font-size: 1.5rem;
-  color: var(--text-color);
+  font-size: 1.8rem;
+  color: #e0e0e0;
   cursor: pointer;
-  opacity: 0.7;
+  transition: color 0.2s;
+
   &:hover {
-    opacity: 1;
+    color: #FFD700;
   }
 `;
 
-const ChartTitle = styled.h3`
-  font-size: 1.8rem;
-  color: var(--text-color);
-  margin-bottom: 25px;
+const StatItem = styled.div`
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  strong {
+    color: #FFD700;
+  }
+`;
+
+const ErrorMessage = styled.p`
+    color: #ff4500;
+    margin-top: 15px;
+    font-size: 0.9rem;
+`;
+
+const LoadingMessage = styled.p`
+    color: #00ffff;
+    margin-top: 15px;
+    font-size: 0.9rem;
 `;
 
 const ChartContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 20px;
-  height: 200px;
-  padding: 10px;
-  border-bottom: 2px solid var(--border-color);
-  margin-bottom: 20px;
+    width: 100%;
+    height: 200px; /* Фіксована висота для графіків */
+    margin-top: 20px;
+    margin-bottom: 20px;
 `;
 
-const ChartColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100%;
-  width: 120px;
-`;
+const COLORS = ['#32CD32', '#FF4500']; // Green for likes, Red for dislikes
 
-const ChartBar = styled(motion.div)`
-  width: 100%;
-  background-color: ${props => props.color || 'var(--primary-color)'};
-  border-radius: 5px 5px 0 0;
-  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
-`;
+const SignalStatsModal = ({ onClose, accessKey }) => {
+    const { language } = useAppContext();
+    const t = translations[language];
 
-const BarLabel = styled.span`
-  margin-top: 10px;
-  font-size: 1rem;
-  font-weight: bold;
-  color: var(--text-color);
-`;
+    const [userStats, setUserStats] = useState({ up: 0, down: 0, signalClicks: 0 });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-const StatsGrid = styled.div`
-  display: flex;
-  justify-content: space-around;
-  margin-top: 20px;
-`;
+    useEffect(() => {
+        const fetchUserStats = async () => {
+            if (!accessKey) {
+                setError(t.stats_error_no_access_key || 'Access key not available. Cannot fetch stats.');
+                setLoading(false);
+                return;
+            }
 
-const StatsItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-`;
+            setLoading(true);
+            setError(null);
+            try {
+                const feedbackData = await getUserFeedbackStats(accessKey);
+                const signalClicksData = await getUserSignalClicksStats(accessKey);
+                
+                setUserStats({
+                    up: feedbackData.user_up || 0,
+                    down: feedbackData.user_down || 0,
+                    signalClicks: signalClicksData.user_clicks || 0
+                });
+                console.log('SignalStatsModal: Fetched user stats:', { feedbackData, signalClicksData });
+            } catch (err) {
+                console.error("SignalStatsModal: Failed to fetch user stats:", err);
+                setError(t.stats_error_fetching || 'Failed to fetch statistics. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-const StatValue = styled.span`
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: ${props => props.color || 'var(--primary-color)'};
-`;
+        fetchUserStats();
+    }, [accessKey, language, t.stats_error_no_access_key, t.stats_error_fetching]);
 
-const StatLabel = styled.span`
-  font-size: 0.9rem;
-  color: #888;
-`;
+    // Дані для кругового графіка
+    // Переконайтеся, що name відповідає ключам перекладу
+    const pieData = [
+        { name: t.likes, value: userStats.up },
+        { name: t.dislikes, value: userStats.down },
+    ];
 
-const modalVariants = {
-  hidden: { opacity: 0, scale: 0.8 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.3, type: 'spring', damping: 15, stiffness: 300 } },
-  exit: { opacity: 0, scale: 0.8, transition: { duration: 0.2 } },
-};
+    // Дані для бар-чарту (кліки на сигнал)
+    // Переконайтеся, що name відповідає ключу перекладу
+    const barData = [
+        { name: t.signal_button_clicks, value: userStats.signalClicks }
+    ];
 
-const SignalStatsModal = ({ feedbackClicks, onClose }) => {
-  const { language } = useAppContext();
-  const t = translations[language];
+    return (
+        <AnimatePresence>
+            <ModalOverlay
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+            >
+                <ModalContent
+                    initial={{ scale: 0.9, y: 50 }}
+                    animate={{ scale: 1, y: 0 }}
+                    exit={{ scale: 0.9, y: -50, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <CloseButton onClick={onClose} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                        &times;
+                    </CloseButton>
+                    <h2>{t.your_signal_stats}</h2>
 
-  const { up, down } = feedbackClicks;
-  const total = up + down;
-  const upPercentage = total > 0 ? (up / total) * 100 : 0;
-  const downPercentage = total > 0 ? (down / total) * 100 : 0;
-  const accuracyPercentage = upPercentage;
+                    {loading && <LoadingMessage>{t.loading_stats}</LoadingMessage>}
+                    {error && <ErrorMessage>{error}</ErrorMessage>}
 
-  return (
-    <ModalOverlay>
-      <ModalContent
-        variants={modalVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-      >
-        <CloseButton onClick={onClose}>&times;</CloseButton>
-        <ChartTitle>{t.signal_accuracy}</ChartTitle>
+                    {!loading && !error && (
+                        <>
+                            <StatItem>
+                                {t.likes}: <strong>{userStats.up}</strong>
+                            </StatItem>
+                            <StatItem>
+                                {t.dislikes}: <strong>{userStats.down}</strong>
+                            </StatItem>
+                            <StatItem>
+                                {t.signal_button_clicks}: <strong>{userStats.signalClicks}</strong>
+                            </StatItem>
 
-        <ChartContainer>
-          <ChartColumn>
-            <ChartBar
-              color="#28a745"
-              initial={{ height: '0%' }}
-              animate={{ height: `${upPercentage}%` }}
-              transition={{ duration: 0.5 }}
-            />
-            <BarLabel>{t.profitable_signals}</BarLabel>
-          </ChartColumn>
-          <ChartColumn>
-            <ChartBar
-              color="#dc3545"
-              initial={{ height: '0%' }}
-              animate={{ height: `${downPercentage}%` }}
-              transition={{ duration: 0.5 }}
-            />
-            <BarLabel>{t.unprofitable_signals}</BarLabel>
-          </ChartColumn>
-        </ChartContainer>
+                            {/* Pie Chart for Likes/Dislikes */}
+                            {/* Відображаємо графік тільки якщо є дані (сума лайків і дизлайків > 0) */}
+                            {(userStats.up > 0 || userStats.down > 0) && (
+                                <>
+                                    <h3>{t.feedback_distribution}</h3>
+                                    <ChartContainer>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={pieData}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    outerRadius={80}
+                                                    dataKey="value"
+                                                    labelLine={false}
+                                                    // label={({ name }) => `${name}`} // ВИДАЛЕНО: Цей рядок прибирав дублювання міток на діаграмі
+                                                >
+                                                    {pieData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                {/* Додано Tooltip та Legend для кращої інтерактивності */}
+                                                <Tooltip />
+                                                <Legend />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    </ChartContainer>
+                                </>
+                            )}
 
-        <StatsGrid>
-          <StatsItem>
-            <StatValue color="var(--primary-color)">{accuracyPercentage.toFixed(1)}%</StatValue>
-            <StatLabel>{t.accuracy}</StatLabel>
-          </StatsItem>
-          <StatsItem>
-            <StatValue color="#28a745">{up}</StatValue>
-            <StatLabel>{t.profitable_count}</StatLabel>
-          </StatsItem>
-          <StatsItem>
-            <StatValue color="#dc3545">{down}</StatValue>
-            <StatLabel>{t.unprofitable_count}</StatLabel>
-          </StatsItem>
-        </StatsGrid>
-      </ModalContent>
-    </ModalOverlay>
-  );
+                            {/* Bar Chart for Signal Clicks */}
+                            {/* Відображаємо графік тільки якщо є дані (кліки на сигнал > 0) */}
+                            {userStats.signalClicks > 0 && (
+                                <>
+                                    <h3>{t.signal_clicks_chart_title}</h3>
+                                    <ChartContainer>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={barData}
+                                                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                            >
+                                                <XAxis dataKey="name" stroke="#e0e0e0" />
+                                                <YAxis stroke="#e0e0e0" />
+                                                <Tooltip />
+                                                {/* <Legend /> - ВИДАЛЕНО: Легенда для BarChart, щоб уникнути дублювання "value" */}
+                                                <Bar dataKey="value" fill="#FFD700" /> {/* Gold color for bars */}
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </ChartContainer>
+                                </>
+                            )}
+                        </>
+                    )}
+                </ModalContent>
+            </ModalOverlay>
+        </AnimatePresence>
+    );
 };
 
 export default SignalStatsModal;

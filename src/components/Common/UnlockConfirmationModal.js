@@ -77,7 +77,8 @@ const modalVariants = {
 };
 
 const UnlockConfirmationModal = () => {
-  const { setShowUnlockConfirmationModal, language, isUnlocked } = useAppContext(); // Додано isUnlocked
+  // Додано isUnlocked до useAppContext, щоб компонент міг реагувати на його зміну
+  const { setShowUnlockConfirmationModal, language, isUnlocked } = useAppContext(); 
   const t = translations[language];
 
   // Додаткова перевірка при монтуванні, щоб уникнути повторного відображення
@@ -89,17 +90,20 @@ const UnlockConfirmationModal = () => {
     }
 
     const timer = setTimeout(() => {
+      console.log('UnlockConfirmationModal: Timer finished, hiding modal.');
       setShowUnlockConfirmationModal(false);
     }, 3000); // Закрити через 3 секунди
     return () => clearTimeout(timer); // Очистити таймер при розмонтуванні
   }, [setShowUnlockConfirmationModal, isUnlocked]); // Залежності
 
   const handleClose = () => {
+    console.log('UnlockConfirmationModal: Close button clicked, hiding modal.');
     setShowUnlockConfirmationModal(false);
   };
 
   // Не рендеримо модальне вікно, якщо isUnlocked вже true
   if (isUnlocked) {
+    console.log('UnlockConfirmationModal: isUnlocked is true, returning null (not rendering).');
     return null;
   }
 

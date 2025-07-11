@@ -87,7 +87,7 @@ const Input = styled.input`
   
   &:focus {
     outline: none;
-    border-color: #FFD700; /* Золотий акцентний колір при фокусі */
+    border-color: #FFD700;
     box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3); /* Золоте світіння при фокусі */
   }
 
@@ -111,7 +111,7 @@ const Button = styled(motion.button)`
   box-shadow: 0 4px 10px rgba(255, 215, 0, 0.3); /* Золота тінь для кнопки */
 
   &:hover {
-    background-color: #3C3000;
+    background-color: #3C3000; /* Темніший золотий при наведенні */
     box-shadow: 0 6px 15px rgba(255, 215, 0, 0.4);
   }
 
@@ -141,6 +141,34 @@ const LanguageSwitcherContainer = styled.div`
   justify-content: center; /* Центруємо перемикач всередині форми */
 `;
 
+// Новий стилізований компонент для кнопки Telegram
+const TelegramButton = styled(motion.a)`
+  width: 100%;
+  background-color: #0088cc; /* Колір Telegram */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 15px 30px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 10px rgba(0, 136, 204, 0.3); /* Тінь Telegram */
+  text-decoration: none; /* Прибираємо підкреслення для посилання */
+  display: inline-block; /* Щоб padding та width працювали як на кнопці */
+  margin-top: 20px; /* Відступ від кнопки авторизації */
+
+  &:hover {
+    background-color: #007bb5;
+    box-shadow: 0 6px 15px rgba(0, 136, 204, 0.4);
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px 20px;
+    font-size: 1rem;
+  }
+`;
+
 const AuthPage = () => {
   const [localAccessKey, setLocalAccessKey] = useState(''); // Використовуємо локальний стан для поля вводу
   const [loading, setLoading] = useState(false);
@@ -152,6 +180,9 @@ const AuthPage = () => {
 
   // Перевіряємо, чи вже авторизовано, при завантаженні компонента
   useEffect(() => {
+    console.log("AuthPage useEffect: Checking authentication status.");
+    console.log(`AuthPage useEffect: Current accessKey: ${accessKey}, isUnlocked: ${isUnlocked}`);
+
     if (accessKey && isUnlocked) {
       console.log("AuthPage: Already unlocked, navigating to dashboard.");
       navigate('/dashboard');
@@ -162,24 +193,28 @@ const AuthPage = () => {
   }, [accessKey, isUnlocked, navigate]);
 
   const handleLogin = async () => {
+    console.log("AuthPage handleLogin: Login attempt initiated.");
     if (!localAccessKey) {
       setMessage(t.enter_key_placeholder);
+      console.warn("AuthPage handleLogin: Access key input is empty.");
       return;
     }
 
     setLoading(true);
     setMessage('');
+    console.log(`AuthPage handleLogin: Attempting to verify access key: ${localAccessKey}`);
     
     try {
       const data = await verifyAccessKey(localAccessKey);
       console.log('AuthPage: Raw data received from verifyAccessKey API:', JSON.stringify(data)); // Додано лог з JSON.stringify
       
       if (data) {
+        console.log("AuthPage handleLogin: Access key verification successful.");
         setAccessKey(localAccessKey);
         // Переконайтеся, що data.amount та data.currency існують
         const depositData = { 
-            amount: data.deposit_amount, // Виправлено на data.deposit_amount
-            currency: data.deposit_currency // Виправлено на data.deposit_currency
+            amount: data.amount, // Виправлено на data.amount (з API)
+            currency: data.currency // Виправлено на data.currency (з API)
         };
         console.log('AuthPage: Prepared depositData for context:', JSON.stringify(depositData)); // Додано лог з JSON.stringify
         setDepositInfo(depositData);
@@ -190,12 +225,14 @@ const AuthPage = () => {
 
         // Навігація буде оброблена useEffect після оновлення accessKey та isUnlocked
       } else {
+        console.warn("AuthPage handleLogin: Access key verification failed, data is null.");
         setMessage(t.invalid_access_key);
       }
     } catch (error) {
       console.error('AuthPage: Error during login:', error); // Додано лог помилки
       setMessage(t.invalid_access_key);
     } finally {
+      console.log("AuthPage handleLogin: Login attempt finished, setting loading to false.");
       setLoading(false);
     }
   };
@@ -228,6 +265,17 @@ const AuthPage = () => {
           {loading ? t.checking : t.login_button}
         </Button>
         {message && <Message>{message}</Message>}
+
+        {/* Нова кнопка "Написати мені" */}
+        <TelegramButton
+          href="https://t.me/punjab_trade"
+          target="_blank" // Відкриває посилання в новій вкладці
+          rel="noopener noreferrer" // Рекомендовано для безпеки при target="_blank"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {t.contact_me_telegram} {/* Використовуємо ключ перекладу */}
+        </TelegramButton>
       </Form>
     </AuthContainer>
   );
